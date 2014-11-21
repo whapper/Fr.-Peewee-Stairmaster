@@ -95,7 +95,9 @@ relationship_dict_over50 = {}
 race_dict_over50 = {}
 sex_dict_over50 = {}
 
-workclass_dict_under50, marital_status_dict_under50, occupation_dict_under50, relationship_dict_under50, race_dict_under50, sex_dict_under50, workclass_dict_over50, marital_status_dict_over50, occupation_dict_over50, relationship_dict_over50, race_dict_over50, sex_dict_over50
+items_under = {"workclass_dict_under50", 1,  "marital_status_dict_under50", 5,  "occupation_dict_under50", 6, "relationship_dict_under50", 7 , "race_dict_under50", 8 , "sex_dict_under50", 9}
+
+items_over = {"workclass_dict_over50", 1, "marital_status_dict_over50", 5, "occupation_dict_over50", 6, "relationship_dict_over50", 7, "race_dict_over50", 8, "sex_dict_over50", 9}
 
 try:
 
@@ -130,39 +132,115 @@ cleandata = [line for line in listdata if "?" not in line]
 print("len of cleandata:",len(cleandata))
 
 
-for line in cleandata:
-    with open("dump.txt", "a") as out_file:
-       out_file.write(str(line) + "\n")
-
-
-#SPLIT THE DATA FOR TRAINING AND TEST HERE
-
 try:
     for line in cleandata:
 
         if "<=50k" in line:
             total_under_fifty += 1
+
             if line[1] not in workclass_dict_under50:
-                temp = line[1]
-                workclass_dict_under50[temp] = 1
+                workclass_dict_under50[str(line[1])] = 1
             elif line[1] in workclass_dict_under50:
-                workclass_dict_under50[line[1]] += 1
+                workclass_dict_under50[str(line[1])] += 1
+
+            if line[5] not in marital_status_dict_under50:
+                marital_status_dict_under50[str(line[5])] = 1
+            elif line[5] in marital_status_dict_under50:
+                marital_status_dict_under50[str(line[5])] += 1
+
+            if line[6] not in occupation_dict_under50:
+                occupation_dict_under50[str(line[6])] = 1
+            elif line[6] in occupation_dict_under50:
+                occupation_dict_under50[str(line[6])] += 1
+
+            if line[7] not in relationship_dict_under50:
+                relationship_dict_under50[str(line[7])] = 1
+            elif line[7] in relationship_dict_under50:
+                relationship_dict_under50[str(line[7])] += 1
+
+            if line[8] not in race_dict_under50:
+                race_dict_under50[str(line[8])] = 1
+            elif line[8] in race_dict_under50:
+                race_dict_under50[str(line[8])] += 1
+
+            if line[9] not in sex_dict_under50:
+                sex_dict_under50[str(line[9])] = 1
+            elif line[9] in sex_dict_under50:
+                sex_dict_under50[str(line[9])] += 1
+
 
         elif line[-1] == ">50k":
             total_over_fifty += 1
-            temp2 = line[1]
-            if temp2 not in workclass_dict_over50:
-                workclass_dict_over50[temp2] = 1
-            elif temp2 in workclass_dict_over50:
-                workclass_dict_over50[temp2] += 1
+
+            if line[1] not in workclass_dict_over50:
+                workclass_dict_over50[str(line[1])] = 1
+            elif line[1] in workclass_dict_over50:
+                workclass_dict_over50[str(line[1])] += 1
+
+            if line[5] not in marital_status_dict_over50:
+                marital_status_dict_over50[str(line[5])] = 1
+            elif line[5] in marital_status_dict_over50:
+                marital_status_dict_over50[str(line[5])] += 1
+
+            if line[6] not in occupation_dict_over50:
+                occupation_dict_over50[str(line[6])] = 1
+            elif line[6] in occupation_dict_over50:
+                occupation_dict_over50[str(line[6])] += 1
+
+            if line[7] not in relationship_dict_over50:
+                relationship_dict_over50[str(line[7])] = 1
+            elif line[7] in relationship_dict_over50:
+                relationship_dict_over50[str(line[7])] += 1
+
+            if line[8] not in race_dict_over50:
+                race_dict_over50[str(line[8])] = 1
+            elif line[8] in race_dict_over50:
+                race_dict_over50[str(line[8])] += 1
+
+            if line[9] not in sex_dict_over50:
+                sex_dict_over50[str(line[9])] = 1
+            elif line[9] in sex_dict_over50:
+                sex_dict_over50[str(line[9])] += 1
 
 except ValueError:
     print("This line caused an error", line)
 
-print("dictionary under 50:", workclass_dict_under50)
-print("dictionary over 50:", workclass_dict_over50)
-print("less than fifty is", total_under_fifty)
-print("greater than fifty", total_over_fifty)
+for line in cleandata:
+    if line[-1] == "<=50k":
+        line[1] = workclass_dict_under50[str(line[1])] / total_under_fifty
+        line[5] = marital_status_dict_under50[str(line[5])] / total_under_fifty
+        line[6] = occupation_dict_under50[str(line[6])] / total_under_fifty
+        line[7] = relationship_dict_under50[str(line[7])] / total_under_fifty
+        line[8] = race_dict_under50[str(line[8])] / total_under_fifty
+        line[9] = sex_dict_under50[str(line[9])] / total_under_fifty
+
+    elif line[-1] == ">50k":
+        line[1] = workclass_dict_over50[str(line[1])] / total_over_fifty
+        line[5] = marital_status_dict_over50[str(line[5])] / total_over_fifty
+        line[6] = occupation_dict_over50[str(line[6])] / total_over_fifty
+        line[7] = relationship_dict_over50[str(line[7])] / total_over_fifty
+        line[8] = race_dict_over50[str(line[8])] / total_over_fifty
+        line[9] = sex_dict_over50[str(line[9])] / total_over_fifty
+
+
+for line in cleandata:
+    with open("dump.txt", "a") as out_file:
+       out_file.write(str(line) + "\n")
+
+
+
+traing_data = cleandata[:len(cleandata) / 75]
+test_data = cleandata[len(cleandata) / 75:]
+
+
+#print("workclass_dict_under50:", workclass_dict_under50)
+#print("workclass_dict_over50:", workclass_dict_over50)
+#print("marital_status_dict_under50:", marital_status_dict_under50)
+#print("marital_status_dict_over50:", marital_status_dict_over50)
+#print("---------------------------- \nless than fifty is", total_under_fifty)
+#print("greater than fifty", total_over_fifty)
+
+#print("values of workclass dictionary", workclass_dict_over50.values())
 
 
 """
