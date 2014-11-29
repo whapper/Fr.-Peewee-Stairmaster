@@ -1,79 +1,3 @@
-__author__ = 'Loganaich Mac Giolla Eoin'
-"""
-
-
-
-
-Income predictor
-
-Using a dataset ( the "Adult Data Set") from the UCI Machine-Learning Repository we can predict based on a number of
-factors whether someone's income will be greater than $50,000.
-
-THE TECHNIQUE
-The approach is to create a 'classifier' - a program that takes a new example record and, based on previous examples,
-determines which 'class' it belongs to. In this problem we consider attributes of records and separate these into two
-broad classes, <50K and >=50K.
-
-We begin with a training data set - examples with known solutions. The classifier looks for patterns that indicate
-classification. These patterns can be applied against new data to predict outcomes. If we already know the outcomes
-of the test data, we can test the reliability of our model. if it proves reliable we could then use it to classify data
-with unknown outcomes.
-
-We must train the classifier to establish an internal model of the patterns that distinguish our two classes. Once
-trained we can apply this against the test data - which has known outcomes.
-
-We take our data and split it into two groups - training and test - with most of the data in the training set.
-
-We need to write a program to find the patterns in the training set.
-
-BUILDING THE CLASSIFIER
-Look at the attributes and, for each of the two outcomes, make an average value for each one
-Then average these two results for each attribute to compute a midpoint or 'class separation value'.
-
-For each record, test whether each attribute is above or below its midpoint value and flag it accordingly.
-For each record the overall result is the greater count of the individual results (<50K, >=50K)
-
-You'll know your model works iff you achieve the same results as thee known result for the records. You should track
-the accuracy of your model, i.e how many correct classifications you made as a percentage of the total
-number of records.
-
-PROCESS OVERVIEW
-Create training set from data
-Create classifier using training dataset to determine separator values for each attribute
-Create test dataset
-Use classifier to classify data in test set while maintaining accuracy score
-
-
-THE DATA
-The data is presented in the form of a comma-delimited text file (CSV) which has the following structure:
-
-Listing of attributes:
-
-1. Age: Number
-2. Workclass: Private, Self-emp-not-inc, Self-emp-inc, Federal-gov, Local-gov, State-gov, Without-pay, Never-workedde
-3. fnlwgt: NOT NEEDED
-4. Education: NOT NEEDED
-5. Education-number: Number
-6. Marital-status: Married-civ-spouse, Divorced, Never-married, Separated, Widowed, Married-spouse-absent, Married-AF-spouse.
-7. Occupation: Tech-support, Craft-repair, Other-service, Sales, Exec-managerial, Prof-specialty, Handlers-cleaners, Machine-op-inspct, Adm-clerical, Farming-fishing, Transport-moving, Priv-house-serv, Protective-serv, Armed-Forces.
-8. Relationship: Wife, Own-child, Husband, Not-in-family, Other-relative, Unmarried
-9. Race: White, Asian-Pac-Islander, Amer-Indian-Eskimo, Other, Black
-10. Sex: Female, Male.
-11. Capital-gain: Number````````````
-12. Capital-loss: Number
-13. Hours-per-week: Number
-14. Native-country: NOT NEEDED
-15. Outcome for this record: Can be >50K or <=50K.
-
-Data is available from http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data
-You should be able to read this directly from the Internet..
-
-Fields that have 'discrete' attributes such as 'Relationship' can be given a numeric weight by counting the number of 4
-occurrances as a fraction of the total number of positive records (outcome >= 50K) and negative records (outcome < 50K).
-So, if we have 10 positive records and they have values Wife:2, Own-child: 3, Husband:2, Not-in-family:1,
-Other-realtive:1 and Unmarried:1 then this would yield factors of 0.2, 0.3, 0.2, 0.1, 0.1 and 0.1 respectively.
-"""
-
 import httplib2
 import string
 
@@ -95,7 +19,7 @@ relationship_dict_over50 = {}
 race_dict_over50 = {}
 sex_dict_over50 = {}
 
-items_under = {"workclass_dict_under50", 1,  "marital_status_dict_under50", 5,  "occupation_dict_under50", 6, "relationship_dict_under50", 7 , "race_dict_under50", 8 , "sex_dict_under50", 9}
+items_under = {"workclass_dict_under50", 1,  "marital_status_dict_under50", 5, "occupation_dict_under50", 6, "relationship_dict_under50", 7 , "race_dict_under50", 8 , "sex_dict_under50", 9}
 
 items_over = {"workclass_dict_over50", 1, "marital_status_dict_over50", 5, "occupation_dict_over50", 6, "relationship_dict_over50", 7, "race_dict_over50", 8, "sex_dict_over50", 9}
 
@@ -124,13 +48,10 @@ try:
         line[11] = int(line[11])
         line[12] = int(line[12])
 
-
 except ValueError:
-    print("line has an error in it:", line)
+    print("Bad data")
 
 cleandata = [line for line in listdata if "?" not in line]
-print("len of cleandata:",len(cleandata))
-
 
 try:
     for line in cleandata:
@@ -168,7 +89,6 @@ try:
             elif line[9] in sex_dict_under50:
                 sex_dict_under50[str(line[9])] += 1
 
-
         elif line[-1] == ">50k":
             total_over_fifty += 1
 
@@ -203,7 +123,7 @@ try:
                 sex_dict_over50[str(line[9])] += 1
 
 except ValueError:
-    print("This line caused an error", line)
+    pass
 
 for line in cleandata:
     if line[-1] == "<=50k":
@@ -222,80 +142,176 @@ for line in cleandata:
         line[8] = race_dict_over50[str(line[8])] / total_over_fifty
         line[9] = sex_dict_over50[str(line[9])] / total_over_fifty
 
+training_data = cleandata[:int(len(cleandata) * .75)]
+test_data = cleandata[int(len(cleandata) * .25):]
 
-for line in cleandata:
-    with open("dump.txt", "a") as out_file:
-       out_file.write(str(line) + "\n")
+averages_under = []
+averages_over = []
+
+age_total_under = 0
+workclass_total_under = 0
+education_num_total_under = 0
+marital_status_total_under = 0
+occupation_total_under = 0
+relationship_total_under = 0
+sex_total_under = 0
+race_total_under = 0
+gain_total_under = 0
+loss_total_under = 0
+hours_total_under = 0
+
+age_total_over = 0
+workclass_total_over = 0
+education_num_total_over = 0
+marital_status_total_over = 0
+occupation_total_over = 0
+relationship_total_over = 0
+sex_total_over = 0
+race_total_over = 0
+gain_total_over = 0
+loss_total_over = 0
+hours_total_over = 0
+
+total_training_under = 0
+total_training_over = 0
+
+for line in training_data:
+    if line[-1] == "<=50k":
+        total_training_under += 1
+        age_total_under += line[0]
+        workclass_total_under += line[1]
+        education_num_total_under += line[4]
+        marital_status_total_under += line[5]
+        occupation_total_under += line[6]
+        relationship_total_under += line[7]
+        sex_total_under += line[8]
+        race_total_under += line[9]
+        gain_total_under += line[10]
+        loss_total_under += line[11]
+        hours_total_under += line[12]
+
+    elif line[-1] == ">50k":
+        total_training_over += 1
+        age_total_over += line[0]
+        workclass_total_over += line[1]
+        education_num_total_over += line[4]
+        marital_status_total_over += line[5]
+        occupation_total_over += line[6]
+        relationship_total_over += line[7]
+        sex_total_over += line[8]
+        race_total_over += line[9]
+        gain_total_over += line[10]
+        loss_total_over += line[11]
+        hours_total_over += line[12]
+
+averages_under.append(age_total_under / total_training_under)
+averages_under.append(workclass_total_under / total_training_under)
+averages_under.append(education_num_total_under / total_training_under)
+averages_under.append(marital_status_total_under / total_training_under)
+averages_under.append(occupation_total_under / total_training_under)
+averages_under.append(relationship_total_under / total_training_under)
+averages_under.append(sex_total_under / total_training_under)
+averages_under.append(race_total_under / total_training_under)
+averages_under.append(gain_total_under / total_training_under)
+averages_under.append(loss_total_under / total_training_under)
+averages_under.append(hours_total_under / total_training_under)
+
+averages_over.append(age_total_over / total_training_over)
+averages_over.append(workclass_total_over / total_training_over)
+averages_over.append(education_num_total_over / total_training_over)
+averages_over.append(marital_status_total_over / total_training_over)
+averages_over.append(occupation_total_over / total_training_over)
+averages_over.append(relationship_total_over / total_training_over)
+averages_over.append(sex_total_over / total_training_over)
+averages_over.append(race_total_over / total_training_over)
+averages_over.append(gain_total_over / total_training_over)
+averages_over.append(loss_total_over / total_training_over)
+averages_over.append(hours_total_over / total_training_over)
 
 
+midpoints = []
+for index, item in enumerate(averages_under):
+    totals = averages_under[index] + averages_over[index]
+    midpoints.append(totals/2)
+print(midpoints)
 
-traing_data = cleandata[:len(cleandata) / 75]
-test_data = cleandata[len(cleandata) / 75:]
+correct = 0
+wrong = 0
 
+try:
+    for line in test_data:
+        if line[0] > midpoints[0]:
+            line[0] = "O"
+        else:
+            line[0] = "U"
 
-#print("workclass_dict_under50:", workclass_dict_under50)
-#print("workclass_dict_over50:", workclass_dict_over50)
-#print("marital_status_dict_under50:", marital_status_dict_under50)
-#print("marital_status_dict_over50:", marital_status_dict_over50)
-#print("---------------------------- \nless than fifty is", total_under_fifty)
-#print("greater than fifty", total_over_fifty)
+        if line[1] > midpoints[1]:
+            line[1] = "O"
+        else:
+            line[1] = "U"
 
-#print("values of workclass dictionary", workclass_dict_over50.values())
+        if line[4] > midpoints[2]:
+            line[4] = "O"
+        else:
+            line[4] = "U"
 
+        if line[5] > midpoints[3]:
+            line[5] = "O"
+        else:
+            line[5] = "U"
+
+        if line[6] > midpoints[4]:
+            line[6] = "O"
+        else:
+            line[6] = "U"
+
+        if line[7] > midpoints[5]:
+            line[7] = "O"
+        else:
+            line[7] = "U"
+
+        if line[8] > midpoints[6]:
+            line[8] = "O"
+        else:
+            line[8] = "U"
+
+        if line[9] > midpoints[7]:
+            line[9] = "O"
+        else:
+            line[9] = "U"
+
+        if line[10] > midpoints[8]:
+            line[10] = "O"
+        else:
+            line[10] = "U"
+
+        if line[11] > midpoints[9]:
+            line[11] = "O"
+        else:
+            line[11] = "U"
+
+        if line[12] > midpoints[10]:
+            line[12] = "O"
+        else:
+            line[12] = "U"
+
+        if line.count("O") > line.count("U") and line[-1] == ">50k":
+            correct += 1
+        elif line.count("U") > line.count("O") and line[-1] == "<=50k":
+            correct += 1
+        else:
+            wrong += 1
+
+except:
+    pass
+
+print("correct:", correct)
+print("Wrong:", wrong)
+print("Total:", len(test_data))
+accuracy = correct * 100 / len(test_data)
+print("Accuracy: ", int(accuracy), "%", sep="")
 
 """
-1. Age: Number
-2. Workclass: Private, Self-emp-not-inc, Self-emp-inc, Federal-gov, Local-gov, State-gov, Without-pay, Never-workedde
-3. fnlwgt: NOT NEEDED
-4. Education: NOT NEEDED
-5. Education-number: Number
-6. Marital-status: Married-civ-spouse, Divorced, Never-married, Separated, Widowed, Married-spouse-absent, Married-AF-spouse.
-7. Occupation: Tech-support, Craft-repair, Other-service, Sales, Exec-managerial, Prof-specialty, Handlers-cleaners, Machine-op-inspct, Adm-clerical, Farming-fishing, Transport-moving, Priv-house-serv, Protective-serv, Armed-Forces.
-8. Relationship: Wife, Own-child, Husband, Not-in-family, Other-relative, Unmarried
-9. Race: White, Asian-Pac-Islander, Amer-Indian-Eskimo, Other, Black
-10. Sex: Female, Male.
-capital-gain: Number
-capital-loss: Number
-hours-per-week: Number
-14. Native-country: NOT NEEDED
-15. >50K or <=50K.
-
-
-
-
-
-
-
-
-sum_of_ages = 0
-count_of_ages = 0
-try:
-    for row in listdata:
-        sum_of_ages += int(row[0])
-        count_of_ages += 1
-    else:
-        print("dddd")
-except ValueError as e:
-    print(e)
-
-average_age = sum_of_ages / count_of_ages
-print("Avergae age is", average_age)
-
-#except:
-#    print ("Could not download the file required for this program. Please ensure you are connected to the internet.")
-
-
-
-print (resp)
-#strip()
-datalines = []
-for line in data:
-    i = list(line)
-    datalines.append(i)
-print (datalines[1])
-
-
 if __name__ == "__main__"
     main()
-
 """
